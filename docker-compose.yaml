@@ -18,35 +18,43 @@ services:
       - .env
 
   web_proxy:
-    build: nginx/
-    container_name:  nginx-aps
+    image: nginx:1.29.3
+    container_name: nginx-aps
     restart: unless-stopped
     ports:
       - "80:80"
-      - "43:43"
+      - "443:443"
     depends_on:
       app:
         condition: service_healthy
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     networks:
       - services-network
 
   rabbitmq:
-    build: rabbitmq/
+    image: rabbitmq:4.2.1
+    container_name: rabbitmq-aps
     ports:
       - "15672:15672"
       - "5672:5672"
     volumes:
-      - ./test_rabbit:/var/lib/rabbitmq/
-    restart: unless-stopped
+      - rabbitmq-volume:/var/lib/rabbitmq
+    restart: on-failure
 
-  database:
-    build: database
+  postgres:
+    image: postgres:18.1
+    container_name: postgres-aps
     volumes: 
-      - ./database/db/:/db/
+      - postgres-volume:/var/lib/postgres
 
 networks:
   services-network:
     name: services-network
     driver: bridge
+
+volumes:
+  rabbitmq-volume: 
+    driver: local
+  postgres-volume: 
+    driver: local
