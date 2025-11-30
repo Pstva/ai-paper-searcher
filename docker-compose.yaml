@@ -1,0 +1,60 @@
+services:
+
+  app:
+    build: app/ 
+    container_name: app-aps
+    volumes:
+     - ./app/:/server/
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    restart: unless-stopped
+    networks:
+      - services-network
+    env_file:
+      - .env
+
+  web_proxy:
+    image: nginx:1.29.3
+    container_name: nginx-aps
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      app:
+        condition: service_healthy
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - services-network
+
+  rabbitmq:
+    image: rabbitmq:4.2.1
+    container_name: rabbitmq-aps
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    volumes:
+      - rabbitmq-volume:/var/lib/rabbitmq
+    restart: on-failure
+
+  postgres:
+    image: postgres:18.1
+    container_name: postgres-aps
+    volumes: 
+      - postgres-volume:/var/lib/postgres
+
+networks:
+  services-network:
+    name: services-network
+    driver: bridge
+
+volumes:
+  rabbitmq-volume: 
+    driver: local
+  postgres-volume: 
+    driver: local
