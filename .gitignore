@@ -1,3 +1,5 @@
 lessons
-test_rabbit
 .env
+__pycache__
+venv
+app/old/
