@@ -1,3 +1,4 @@
+import datetime
 import random
 import re
 from hashlib import pbkdf2_hmac
@@ -24,7 +25,7 @@ expression:
 """
 
 USER_NAME_RULES = """
-The user name should not be less than 3 characters and should be more then 20 characters.
+The user name should not be less than 3 characters and should not be more then 20 characters.
 """
 
 
@@ -50,7 +51,7 @@ def is_strong_password(password: str) -> bool:
     if not password or not isinstance(password, str):
         return False
     pattern = re.compile(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$")
-    return (bool(pattern.fullmatch(password)),)
+    return bool(pattern.fullmatch(password))
 
 
 def is_valid_email(email: str) -> bool:
@@ -114,3 +115,7 @@ def make_password_hash(password: str) -> str:
     salt = random.randbytes(n=10) * 2
     dk = pbkdf2_hmac("sha256", bytes(password, encoding="utf-8"), salt, iters)
     return dk.hex()
+
+
+def get_current_datetime():
+    return datetime.datetime.now(datetime.timezone.utc)
